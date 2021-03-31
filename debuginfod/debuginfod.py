@@ -81,13 +81,41 @@ class DebugInfoD:
             raise FileNotFoundError('libdebuginfod not found, please install it first!')
         self._handle = CDLL(searched_library, use_errno=True)
         self._handle_libc = CDLL(util.find_library('c'))
-        self._handle.debuginfod_begin.restype = c_void_p
         if not os.environ.get('DEBUGINFOD_URLS', None):
             os.environ['DEBUGINFOD_URLS'] = 'https://debuginfod.elfutils.org/'
+        self._client = None
+        self.begin()
+
+    def __enter__(self):
+        '''Allow DebugInfoD to be used as a context manager.'''
+        self.begin()
+        return self
+
+    def __exit__(self, *args):
+        '''Allow DebugInfoD to be used as a context manager.'''
+        self.end()
+
+    # debuginfod_client *debuginfod_begin(void);
+    def begin(self):
+        '''Create a connection handle.
+
+        Raises:
+            OSError: Creating the connection handle for this session failed.
+        '''
+        if self._client:
+            return
+        self._handle.debuginfod_begin.restype = c_void_p
         self._client = self._handle.debuginfod_begin()
         if not self._client:
             errno = get_errno()
             raise OSError(errno, os.strerror(errno))
+
+    # void debuginfod_end(debuginfod_client *client);
+    def end(self):
+        '''Release all state and storage for the current connection handle.'''
+        if self._client:
+            self._handle.debuginfod_end(self._client)
+            self._client = None
 
     # int debuginfod_find_debuginfo(debuginfod_client *client,
     #                               const unsigned char *build_id,
@@ -281,4 +309,7 @@ class DebugInfoD:
             raise NotImplementedError from None
 
     def __del__(self):
-        self._handle.debuginfod_end(self._client)
+        '''Release all state and storage for the current connection handle.'''
+        if self._client:
+            self._handle.debuginfod_end(self._client)
+            self._client = None
