@@ -21,7 +21,7 @@ def _get_buildid(elffile):
             buildid = note['n_desc']
     return buildid
 
-def run(action, arg, sourcefile=None, verbose=False):
+def run(command, arg, sourcefile=None, verbose=False):
     d = DebugInfoD()
     if verbose:
         d.set_verbose_fd(sys.stderr)
@@ -38,11 +38,11 @@ def run(action, arg, sourcefile=None, verbose=False):
             print('Error while reading ELF file {}: {}'.format(arg, e), file=sys.stderr)
     if buildid is None:
         sys.exit(1)
-    if action == 'debuginfo':
+    if command == 'debuginfo':
         fd, path = d.find_debuginfo(buildid)
-    elif action == 'executable':
+    elif command == 'executable':
         fd, path = d.find_executable(buildid)
-    elif action == 'source':
+    elif command == 'source':
         fd, path = d.find_source(buildid, sourcefile)
     if fd < 0:
         print('Query failed: {}'.format(os.strerror(-fd)), file=sys.stderr)
@@ -53,17 +53,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', help='Be more verbose',
                         action='store_true')
-    parser.add_argument('action', choices=['debuginfo', 'executable', 'source'],
-                        help='The command what to retrieve from debuginfod')
-    parser.add_argument('input', nargs='+', help='The build ID')
+    parser.add_argument('command', choices=['debuginfo', 'executable', 'source'],
+                        help='The command what to retrieve from debuginfod.')
+    parser.add_argument('input', nargs='+', help='A SHA-1 build ID or the path to a binary file'\
+                        ' containing a build ID section. If the command is \'source\', you need'\
+                        ' to provide a build ID or file as the first input parameter and the'\
+                        ' absolute path to the target file (as present in the DWARF information)'\
+                        ' as the second.')
     args = parser.parse_args()
-    if args.action == 'source' and \
+    if args.command == 'source' and \
             (len(args.input) != 2 or not os.path.isabs(args.input[1])):
         parser.error('Please provide a PATH/BUILDID and an absolute path for \'source\'')
-    elif args.action in ('debuginfo', 'executable') and len(args.input) != 1:
+    elif args.command in ('debuginfo', 'executable') and len(args.input) != 1:
         parser.error('Please provide exactly one PATH or BUILDID as a parameter')
     sourcefile = None
-    if args.action == 'source':
+    if args.command == 'source':
         sourcefile = args.input[1]
 
-    run(args.action, args.input[0], sourcefile=sourcefile, verbose=args.verbose)
+    run(args.command, args.input[0], sourcefile=sourcefile, verbose=args.verbose)
