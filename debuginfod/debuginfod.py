@@ -50,15 +50,16 @@ def _convert_to_string_buffer(buildid):
 
 # typedef int (*debuginfod_progressfn_t)(debuginfod_client *client,
 #                                        long a, long b);
-PROGRESSFN = CFUNCTYPE(c_int, c_void_p, c_long, c_long)
+ProgressFunction = CFUNCTYPE(c_int, c_void_p, c_long, c_long)
 '''A callback function type which is called during file download.
 
 In order to allow a callback function to be implemented, it must be derived from
-ctypes.CFUNCTYPE. The PROGRESSFN type already includes the correct description
-of parameter types and the return value. The callback function must take three
-parameters - client (which will be of type ctypes.c_void_p), a, and b -, where a
-and b are ctypes.c_long values and a/b describes the progress of the current
-file download. b may be zero until the actual download size can be determined.
+ctypes.CFUNCTYPE. The ProgressFunction type already includes the correct
+description of parameter types and the return value. The callback function must
+take three parameters - client (which will be of type ctypes.c_void_p), a, and
+b -, where a and b are ctypes.c_long values and a/b describes the progress of
+the current file download. b may be zero until the actual download size can be
+determined.
 '''
 
 class DebugInfoD:
@@ -216,15 +217,15 @@ class DebugInfoD:
 
     # void debuginfod_set_progressfn(debuginfod_client *client,
     #                                debuginfod_progressfn_t progressfn);
-    def set_progressfn(self, progressfn: PROGRESSFN):
+    def set_progressfn(self, progressfn: ProgressFunction):
         '''Set a callback function which is called during file download
 
         Args:
-            progressfn (PROGRESSFN): A function constructed with the wrapper
-                PROGRESSFN (derived of ctypes.CFUNCTYPE) which takes three
-                parameters (debuginfod_client *, long a, long b). a and b
-                represent the fraction a/b of the current download progress.
-                b may be zero until the exact download size is known.
+            progressfn (ProgressFunction): A function constructed with the
+                wrapper ProgressFunction (derived of ctypes.CFUNCTYPE) which
+                takes three parameters (debuginfod_client *, long a, long b).
+                a and b represent the fraction a/b of the current download
+                progress. b may be zero until the exact download size is known.
         '''
         # We already need a CFUNCTYPE object passed in, see the following
         # excerpt from the ctypes documentation regarding callbacks:
