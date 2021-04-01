@@ -12,9 +12,11 @@ This library provides a Python interface for the functions in the `libdebuginfod
 The debuginfod server is queried using a SHA-1 hash (the build ID) which is contained in a section `.note.gnu.build-id` in the stripped binary file.
 
 # Prerequisites
-The bindings have no additional dependencies other than an installation of `libdebuginfod.so`.
+The minimum Python version required is 3.5.
 
-The `debuginfod-find.py` script uses the [pyelftools](https://github.com/eliben/pyelftools) library to extract the build ID from the target file.
+The bindings have no external dependencies other than an installation of `libdebuginfod.so`.
+
+The [scripts/debuginfod-find.py](https://github.com/rupran/libdebuginfod-python/blob/main/scripts/debuginfod-find.py) script uses the [pyelftools](https://github.com/eliben/pyelftools) library to extract the build ID from the target file.
 
 # Usage
 
@@ -64,7 +66,7 @@ In a more pythonic way, `DebugInfoD` can also be used as a context manager where
   (3, b'/home/user/.cache/debuginfod_client/18b9a9a8c523e5cfe5b5d946d605d09242f09798/debuginfo')
 ```
 
-The `scripts/debuginfod-find.py` script supports three commands (`debuginfo`, `executable` and `source`) and accepts either a build ID or a path to a target file. If the filename matches the pattern `[0-9a-f]+`, please provide the path (e.g., `./e3`) to avoid misinterpretation of the input as a build ID. If the command is `source`, you need to provide the path or build ID as the first input parameter and an absolute path to the target source file (as present in the DWARF information) as the second input parameter.
+The [scripts/debuginfod-find.py](https://github.com/rupran/libdebuginfod-python/blob/main/scripts/debuginfod-find.py) script supports three commands (`debuginfo`, `executable` and `source`) and accepts either a build ID or a path to a target file. If the filename matches the pattern `[0-9a-f]+`, please provide the path (e.g., `./e3`) to avoid misinterpretation of the input as a build ID. If the command is `source`, you need to provide the path or build ID as the first input parameter and an absolute path to the target source file (as present in the DWARF information) as the second input parameter.
 
 Example usage:
 
@@ -74,4 +76,4 @@ $ ./scripts/debuginfod-find.py debuginfo /lib/x86_64-linux-gnu/libc-2.28.so
 ```
 
 # License(s)
-The bindings themselves are released under the [MIT](https://opensource.org/licenses/MIT) license. As the script at [./scripts/debuginfod-find.py](https://github.com/rupran/libdebuginfod-python/blob/main/scripts/debuginfod-find.py) is a reimplementation of the `debuginfod-find` application from [elfutils](https://sourceware.org/elfutils/Debuginfod.html) (which is licensed under the GPLv3+ license), the script is also released under the [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.en.html) license.
+The bindings themselves are released under the [MIT](https://opensource.org/licenses/MIT) license. As the script at [scripts/debuginfod-find.py](https://github.com/rupran/libdebuginfod-python/blob/main/scripts/debuginfod-find.py) is a reimplementation of the `debuginfod-find` application from [elfutils](https://sourceware.org/elfutils/Debuginfod.html) (which is licensed under the GPLv3+ license), the script is also released under the [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.en.html) license and not included in the packaged release of the bindings.
