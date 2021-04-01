@@ -11,6 +11,11 @@ This library provides a Python interface for the functions in the `libdebuginfod
 
 The debuginfod server is queried using a SHA-1 hash (the build ID) which is contained in a section `.note.gnu.build-id` in the stripped binary file.
 
+# Prerequisites
+The bindings have no additional dependencies other than an installation of `libdebuginfod.so`.
+
+The `debuginfod-find.py` script uses the [pyelftools](https://github.com/eliben/pyelftools) library to extract the build ID from the target file.
+
 # Usage
 
 This example was run under Debian Buster with the `libdebuginfod1`, `libelf1` and `libdw1` packages from `buster-backports`.
@@ -18,12 +23,23 @@ This example was run under Debian Buster with the `libdebuginfod1`, `libelf1` an
 In order to make `libdebuginfod.so` aware of the servers to query, you can set the `DEBUGINFOD_URLS` environment variable. For example, to query the Debian server, you can run:
 
 ```bash
-export DEBUGINFOD_URLS="https://debuginfod.debian.net"
+$ export DEBUGINFOD_URLS="https://debuginfod.debian.net"
 ```
 
 If the `DEBUGINFOD_URLS` environment variable is not set, it is temporarily set to the `elfutils` server (`https://debuginfod.elfutils.org/`) which federates to all trusted servers (listed on the [elfutils](https://sourceware.org/elfutils/Debuginfod.html) website).
 
 The other environment variables listed in the [manual page](https://manpages.debian.org/experimental/libdebuginfod-dev/debuginfod_find_debuginfo.3.en.html#ENVIRONMENT_VARIABLES) are also respected as they are handled by `libdebuginfod.so` itself.
+
+You can extract the build ID information using the `readelf` tool like this:
+
+```bash
+$ readelf -n /lib/x86_64-linux-gnu/libc-2.28.so
+
+Displaying notes found in: .note.gnu.build-id
+  Owner                 Data size	Description
+  GNU                  0x00000014	NT_GNU_BUILD_ID (unique build ID bitstring)
+    Build ID: 18b9a9a8c523e5cfe5b5d946d605d09242f09798
+```
 
 With the prerequisites in place, you can use the `DebugInfoD` class as follows:
 
@@ -37,8 +53,7 @@ With the prerequisites in place, you can use the `DebugInfoD` class as follows:
   >>> session.end()
 ```
 
-In a more pythonic way, `DebugInfoD` can also be used as a context manager where
-`begin()` and `end()` are called automatically.
+In a more pythonic way, `DebugInfoD` can also be used as a context manager where `begin()` and `end()` are called automatically.
 
 ```python
   >>> from debuginfod.debuginfod import DebugInfoD
@@ -49,5 +64,14 @@ In a more pythonic way, `DebugInfoD` can also be used as a context manager where
   (3, b'/home/user/.cache/debuginfod_client/18b9a9a8c523e5cfe5b5d946d605d09242f09798/debuginfo')
 ```
 
+The `scripts/debuginfod-find.py` script supports three commands (`debuginfo`, `executable` and `source`) and accepts either a build ID or a path to a target file. If the filename matches the pattern `[0-9a-f]+`, please provide the path (e.g., `./e3`) to avoid misinterpretation of the input as a build ID. If the command is `source`, you need to provide the path or build ID as the first input parameter and an absolute path to the target source file (as present in the DWARF information) as the second input parameter.
+
+Example usage:
+
+```bash
+$ ./scripts/debuginfod-find.py debuginfo /lib/x86_64-linux-gnu/libc-2.28.so
+/home/user/.cache/debuginfod_client/18b9a9a8c523e5cfe5b5d946d605d09242f09798/debuginfo
+```
+
 # License(s)
-The bindings themselves are released under the [MIT](https://opensource.org/licenses/MIT) license. As the script at `scripts/debuginfod-find.py` is a reimplementation of the `debuginfod-find` application from [elfutils](https://sourceware.org/elfutils/Debuginfod.html) (which is licensed under the GPLv3+ license), the script is also released under the [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.en.html) license.
+The bindings themselves are released under the [MIT](https://opensource.org/licenses/MIT) license. As the script at [./scripts/debuginfod-find.py](https://github.com/rupran/libdebuginfod-python/blob/main/scripts/debuginfod-find.py) is a reimplementation of the `debuginfod-find` application from [elfutils](https://sourceware.org/elfutils/Debuginfod.html) (which is licensed under the GPLv3+ license), the script is also released under the [GPLv3+](https://www.gnu.org/licenses/gpl-3.0.en.html) license.
