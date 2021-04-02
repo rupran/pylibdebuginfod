@@ -13,7 +13,7 @@ setup(
     version = '0.1',
     license = 'MIT',
     packages = [
-        'debuginfod'
+        'libdebuginfod'
     ],
     classifiers = [
         'Development Status :: 4 - Beta',

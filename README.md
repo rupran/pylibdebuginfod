@@ -46,7 +46,7 @@ Displaying notes found in: .note.gnu.build-id
 With the prerequisites in place, you can use the `DebugInfoD` class as follows:
 
 ```python
-  >>> from debuginfod.debuginfod import DebugInfoD
+  >>> from libdebuginfod import DebugInfoD
   >>> session = DebugInfoD()
   >>> session.begin() # optional, is also called from __init__ at the moment.
   >>> fd, path = session.find_debuginfo('18b9a9a8c523e5cfe5b5d946d605d09242f09798')
@@ -58,7 +58,7 @@ With the prerequisites in place, you can use the `DebugInfoD` class as follows:
 In a more pythonic way, `DebugInfoD` can also be used as a context manager where `begin()` and `end()` are called automatically.
 
 ```python
-  >>> from debuginfod.debuginfod import DebugInfoD
+  >>> from libdebuginfod import DebugInfoD
   >>> with DebugInfoD() as d:
   ...     fd, path = d.find_debuginfo('18b9a9a8c523e5cfe5b5d946d605d09242f09798')
   ...     print((fd, path))

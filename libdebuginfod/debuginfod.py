@@ -14,10 +14,12 @@ requested file. Otherwise, all find_* methods will fail and only return the
 error code -38 (Function not implemented).
 
 Example:
-    >>> from debuginfod.debuginfod import DebugInfoD()
+    >>> from libdebuginfod import DebugInfoD
     >>> d = DebugInfoD()
+    >>> d.begin()
     >>> d.find_debuginfo('18b9a9a8c523e5cfe5b5d946d605d09242f09798')
     (3, b'/tmp/cache/18b9a9a8c523e5cfe5b5d946d605d09242f09798/debuginfo')
+    >>> d.end()
 
 [0]: https://sourceware.org/elfutils/Debuginfod.html
 '''

@@ -7,7 +7,7 @@ import argparse
 import os
 import sys
 
-from debuginfod.debuginfod import DebugInfoD
+from libdebuginfod import DebugInfoD
 from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
 
