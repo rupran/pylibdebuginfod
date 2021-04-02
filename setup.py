@@ -4,9 +4,14 @@
 
 from setuptools import setup
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name = 'pylibdebuginfod',
     description = 'Python bindings for libdebuginfod',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author = 'Andreas Ziegler',
     author_email = 'andreas.ziegler@fau.de',
     url = 'https://github.com/rupran/pylibdebuginfod',
@@ -16,7 +21,6 @@ setup(
         'libdebuginfod'
     ],
     classifiers = [
-        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Topic :: Software Development :: Debuggers',
         'Topic :: Software Development :: Libraries :: Python Modules',
