@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Andreas Ziegler <andreas.ziegler@fau.de>
+#
+# SPDX-License-Identifier: MIT
+
+.git*   export-ignore
+scripts  export-ignore
+LICENSES/GPL-3.0-or-later.txt   export-ignore
