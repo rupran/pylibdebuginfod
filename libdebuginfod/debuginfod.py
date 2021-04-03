@@ -134,6 +134,10 @@ class DebugInfoD:
             A tuple with an open file descriptor (<int>) and a <bytes>
             representation of the path to the retrieved source code file.
 
+            In case of an error (e.g., DEBUGINFOD_URLS is not set or no debug
+            info was found), the file descriptor is a negative error code
+            (essentially an errno value) and the path is set to None.
+
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/debuginfo)
         '''
         path_p = c_char_p()
@@ -169,6 +173,10 @@ class DebugInfoD:
             A tuple with an open file descriptor (<int>) and a <bytes>
             representation of the path to the retrieved source code file.
 
+            In case of an error (e.g., DEBUGINFOD_URLS is not set or no
+            executable was found), the file descriptor is a negative error code
+            (essentially an errno value) and the path is set to None.
+
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/executable)
         '''
         path_p = c_char_p()
@@ -200,6 +208,10 @@ class DebugInfoD:
         Returns:
             A tuple with an open file descriptor (<int>) and a <bytes>
             representation of the path to the retrieved source code file.
+
+            In case of an error (e.g., DEBUGINFOD_URLS is not set or no source
+            file was found), the file descriptor is a negative error code
+            (essentially an errno value) and the path is set to None.
 
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/source/{filename})
         '''
@@ -276,7 +288,7 @@ class DebugInfoD:
         '''Get the URL of the most recent downloaded file
 
         Returns:
-            The most recent download URL as a string.
+            The most recent download URL as a string or None if no URL was set.
 
         Raises:
             NotImplementedError: The backing libdebuginfod.so file does not
