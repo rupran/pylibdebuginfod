@@ -20,6 +20,9 @@ setup(
     packages = [
         'libdebuginfod'
     ],
+    install_requires = [
+        'pyelftools'
+    ],
     classifiers = [
         'License :: OSI Approved :: MIT License',
         'Topic :: Software Development :: Debuggers',

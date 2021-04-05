@@ -4,6 +4,7 @@
 
 __version__ = '0.1'
 
-from libdebuginfod.debuginfod import DebugInfoD, ProgressFunction
+from libdebuginfod.debuginfod import DebugInfoD, ProgressFunction, \
+                                     get_buildid_from_path
 
 __all__ = ['DebugInfoD', 'ProgressFunction']

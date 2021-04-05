@@ -7,19 +7,9 @@ import argparse
 import os
 import sys
 
-from libdebuginfod import DebugInfoD
+from libdebuginfod import DebugInfoD, get_buildid_from_path
 from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
-
-def _get_buildid(elffile):
-    buildid = None
-    id_section = elffile.get_section_by_name('.note.gnu.build-id')
-    if id_section:
-        for note in id_section.iter_notes():
-            if note['n_type'] != 'NT_GNU_BUILD_ID':
-                continue
-            buildid = note['n_desc']
-    return buildid
 
 def run(command, arg, sourcefile=None, verbose=False):
     d = DebugInfoD()
@@ -30,8 +20,7 @@ def run(command, arg, sourcefile=None, verbose=False):
         buildid = arg
     else:
         try:
-            with open(arg, 'rb') as elffd:
-                buildid = _get_buildid(ELFFile(elffd))
+            buildid = get_buildid_from_path(arg)
         except OSError as e:
             print('Cannot open {}: {}'.format(arg, os.strerror(e.errno)), file=sys.stderr)
         except ELFError as e:

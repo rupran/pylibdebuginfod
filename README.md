@@ -14,12 +14,9 @@ The debuginfod server is queried using a SHA-1 hash (the build ID) which is cont
 # Prerequisites
 The minimum Python version required is 3.5.
 
-The bindings have no external dependencies other than an installation of `libdebuginfod.so`.
-
-The [scripts/debuginfod-find.py](https://github.com/rupran/pylibdebuginfod/blob/main/scripts/debuginfod-find.py) script uses the [pyelftools](https://github.com/eliben/pyelftools) library to extract the build ID from the target file.
+The bindings require an installation of `libdebuginfod.so` and the [pyelftools](https://github.com/eliben/pyelftools) library.
 
 # Usage
-
 This example was run under Debian Buster with the `libdebuginfod1`, `libelf1` and `libdw1` packages from `buster-backports`.
 
 In order to make `libdebuginfod.so` aware of the servers to query, you can set the `DEBUGINFOD_URLS` environment variable. For example, to query the Debian server, you can run:

@@ -29,6 +29,8 @@ from ctypes import util
 from ctypes import CDLL, c_char_p, c_void_p, c_int, c_long, CFUNCTYPE
 from ctypes import get_errno, create_string_buffer, byref, cast
 
+from elftools.elf.elffile import ELFFile
+
 def _convert_to_string_buffer(buildid):
     '''Convert a given buffer (bytes or str) to a ctypes string buffer.
 
@@ -63,6 +65,30 @@ b -, where a and b are ctypes.c_long values and a/b describes the progress of
 the current file download. b may be zero until the actual download size can be
 determined.
 '''
+
+def get_buildid_from_path(path):
+    '''Read the build ID from the binary at path.
+
+    Args:
+        path: the path to an ELF file from which the build ID should be read.
+
+    Returns:
+        The build ID of the ELF file as a lowercase hex string. None if the
+        file did not contain a .note.gnu.build-id section.
+
+    Raises:
+        OSError: Opening the requested file failed.
+        ELFError: The file at the requested path is not a valid ELF file.
+    '''
+    buildid = None
+    with open(path, 'rb') as elffd:
+        id_section = ELFFile(elffd).get_section_by_name('.note.gnu.build-id')
+        if id_section:
+            for note in id_section.iter_notes():
+                if note['n_type'] != 'NT_GNU_BUILD_ID':
+                    continue
+                buildid = note['n_desc']
+    return buildid
 
 class DebugInfoD:
     '''A wrapper class providing Python bindings for libdebuginfo.so operations.
