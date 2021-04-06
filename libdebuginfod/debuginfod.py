@@ -113,17 +113,18 @@ class DebugInfoD:
         self._handle_libc.free.argtypes = [c_void_p]
         if not os.environ.get('DEBUGINFOD_URLS', None):
             os.environ['DEBUGINFOD_URLS'] = 'https://debuginfod.elfutils.org/'
-        self._client = None
-        self.begin()
+        self._client = self.begin()
 
     def __enter__(self):
         '''Allow DebugInfoD to be used as a context manager.'''
-        self.begin()
+        if self._client is None:
+            self._client = self.begin()
         return self
 
     def __exit__(self, *args):
         '''Allow DebugInfoD to be used as a context manager.'''
-        self.end()
+        self.end(self._client)
+        self._client = None
 
     # debuginfod_client *debuginfod_begin(void);
     def begin(self):
@@ -132,27 +133,25 @@ class DebugInfoD:
         Raises:
             OSError: Creating the connection handle for this session failed.
         '''
-        if self._client:
-            return
         self._handle.debuginfod_begin.restype = c_void_p
-        self._client = self._handle.debuginfod_begin()
-        if not self._client:
+        client = self._handle.debuginfod_begin()
+        if not client:
             errno = get_errno()
             raise OSError(errno, os.strerror(errno))
+        return client
 
     # void debuginfod_end(debuginfod_client *client);
-    def end(self):
+    def end(self, client):
         '''Release all state and storage for the current connection handle.'''
-        if self._client:
+        if client:
             self._handle.debuginfod_end.argtypes = [c_void_p]
-            self._handle.debuginfod_end(self._client)
-            self._client = None
+            self._handle.debuginfod_end(client)
 
     # int debuginfod_find_debuginfo(debuginfod_client *client,
     #                               const unsigned char *build_id,
     #                               int build_id_len,
     #                               char ** path);
-    def find_debuginfo(self, buildid):
+    def find_debuginfo(self, buildid, client=None):
         '''Retrieve the debug information file for a given build ID
 
         Args:
@@ -168,12 +167,16 @@ class DebugInfoD:
 
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/debuginfo)
         '''
+        if client is None:
+            client = self._client
+        if client is None:
+            return -22, None
         path_p = c_char_p()
         buildid, size = _convert_to_string_buffer(buildid)
         self._handle.debuginfod_find_debuginfo.argtypes = [c_void_p, c_char_p,
                                                            c_int, c_void_p]
 
-        res = self._handle.debuginfod_find_debuginfo(self._client, buildid,
+        res = self._handle.debuginfod_find_debuginfo(client, buildid,
                                                      size, byref(path_p))
         if res < 0:
             return res, None
@@ -191,7 +194,7 @@ class DebugInfoD:
     #                                const unsigned char *build_id,
     #                                int build_id_len,
     #                                char ** path);
-    def find_executable(self, buildid):
+    def find_executable(self, buildid, client=None):
         '''Retrieve the executable file for a given build ID
 
         Args:
@@ -207,12 +210,16 @@ class DebugInfoD:
 
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/executable)
         '''
+        if client is None:
+            client = self._client
+        if client is None:
+            return -22, None
         path_p = c_char_p()
         buildid, size = _convert_to_string_buffer(buildid)
         self._handle.debuginfod_find_executable.argtypes = [c_void_p, c_char_p,
                                                             c_int, c_void_p]
 
-        res = self._handle.debuginfod_find_executable(self._client, buildid,
+        res = self._handle.debuginfod_find_executable(client, buildid,
                                                       size, byref(path_p))
         if res < 0:
             return res, None
@@ -225,7 +232,7 @@ class DebugInfoD:
     #                            int build_id_len,
     #                            const char *filename,
     #                            char ** path);
-    def find_source(self, buildid, filename: str):
+    def find_source(self, buildid, filename: str, client=None):
         '''Retrieve the source code for a given build ID and filename
 
         Args:
@@ -243,13 +250,17 @@ class DebugInfoD:
 
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/source/{filename})
         '''
+        if client is None:
+            client = self._client
+        if client is None:
+            return -22, None
         path_p = c_char_p()
         buildid, size = _convert_to_string_buffer(buildid)
         filename, _ = _convert_to_string_buffer(filename)
         self._handle.debuginfod_find_source.argtypes = [c_void_p, c_char_p, c_int,
                                                         c_char_p, c_void_p]
 
-        res = self._handle.debuginfod_find_source(self._client, buildid, size,
+        res = self._handle.debuginfod_find_source(client, buildid, size,
                                                   filename, byref(path_p))
         if res < 0:
             return res, None
@@ -259,7 +270,7 @@ class DebugInfoD:
 
     # void debuginfod_set_progressfn(debuginfod_client *client,
     #                                debuginfod_progressfn_t progressfn);
-    def set_progressfn(self, progressfn: ProgressFunction):
+    def set_progressfn(self, progressfn: ProgressFunction, client=None):
         '''Set a callback function which is called during file download
 
         Args:
@@ -269,16 +280,20 @@ class DebugInfoD:
                 a and b represent the fraction a/b of the current download
                 progress. b may be zero until the exact download size is known.
         '''
+        if client is None:
+            client = self._client
+        if client is None:
+            return
         # We already need a CFUNCTYPE object passed in, see the following
         # excerpt from the ctypes documentation regarding callbacks:
         # Note: Make sure you keep references to CFUNCTYPE() objects as long as
         # they are used from C code. ctypes doesn’t, and if you don’t, they may
         # be garbage collected, crashing your program when a callback is made.
         self._handle.debuginfod_set_progressfn.argtypes = [c_void_p, c_void_p]
-        self._handle.debuginfod_set_progressfn(self._client, progressfn)
+        self._handle.debuginfod_set_progressfn(client, progressfn)
 
     # void debuginfod_set_verbose_fd(debuginfod_client *client, int fd);
-    def set_verbose_fd(self, fd):
+    def set_verbose_fd(self, fd, client=None):
         '''Set the file descriptor to write verbose messages to
 
         Args:
@@ -288,14 +303,18 @@ class DebugInfoD:
             NotImplementedError: The backing libdebuginfod.so file does not
                 provide the debuginfod_set_verbose_fd() function.
         '''
+        if client is None:
+            client = self._client
+        if client is None:
+            return
         try:
             self._handle.debuginfod_set_verbose_fd.argtypes = [c_void_p, c_int]
-            self._handle.debuginfod_set_verbose_fd(self._client, fd.fileno())
+            self._handle.debuginfod_set_verbose_fd(client, fd.fileno())
         except AttributeError:
             raise NotImplementedError from None
 
     # void debuginfod_set_user_data(debuginfod_client *client, void *data);
-    def set_user_data(self, data):
+    def set_user_data(self, data, client=None):
         '''Not implemented (yet).
 
         Raises:
@@ -304,7 +323,7 @@ class DebugInfoD:
         raise NotImplementedError
 
     # void* debuginfod_get_user_data(debuginfod_client *client);
-    def get_user_data(self):
+    def get_user_data(self, client=None):
         '''Not implemented (yet).
 
         Raises:
@@ -313,7 +332,7 @@ class DebugInfoD:
         raise NotImplementedError
 
     # const char* debuginfod_get_url(debuginfod_client *client);
-    def get_url(self):
+    def get_url(self, client=None):
         '''Get the URL of the most recent downloaded file
 
         Returns:
@@ -323,17 +342,21 @@ class DebugInfoD:
             NotImplementedError: The backing libdebuginfod.so file does not
                 provide the debuginfod_get_url() function.
         '''
+        if client is None:
+            client = self._client
+        if client is None:
+            return None
         try:
             self._handle.debuginfod_get_url.argtypes = [c_void_p]
             self._handle.debuginfod_get_url.restype = c_char_p
-            result = self._handle.debuginfod_get_url(self._client)
+            result = self._handle.debuginfod_get_url(client)
             return result.decode('utf-8') if result else None
         except AttributeError:
             raise NotImplementedError from None
 
     # int debuginfod_add_http_header(debuginfod_client *client,
     #                                const char* header);
-    def add_http_header(self, header: str):
+    def add_http_header(self, header: str, client=None):
         '''Add a custom HTTP header to all outgoing requests
 
         Args:
@@ -346,10 +369,14 @@ class DebugInfoD:
             NotImplementedError: The backing libdebuginfod.so file does not
                 provide the debuginfod_add_http_header() function.
         '''
+        if client is None:
+            client = self._client
+        if client is None:
+            return -22
         header, _ = _convert_to_string_buffer(header)
         try:
             self._handle.debuginfod_add_http_header.argtypes = [c_void_p, c_char_p]
-            return self._handle.debuginfod_add_http_header(self._client, header)
+            return self._handle.debuginfod_add_http_header(client, header)
         except AttributeError:
             raise NotImplementedError from None
 
