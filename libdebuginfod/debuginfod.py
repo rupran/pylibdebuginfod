@@ -274,6 +274,7 @@ class DebugInfoD:
         # Note: Make sure you keep references to CFUNCTYPE() objects as long as
         # they are used from C code. ctypes doesn’t, and if you don’t, they may
         # be garbage collected, crashing your program when a callback is made.
+        self._handle.debuginfod_set_progressfn.argtypes = [c_void_p, c_void_p]
         self._handle.debuginfod_set_progressfn(self._client, progressfn)
 
     # void debuginfod_set_verbose_fd(debuginfod_client *client, int fd);
@@ -323,6 +324,7 @@ class DebugInfoD:
                 provide the debuginfod_get_url() function.
         '''
         try:
+            self._handle.debuginfod_get_url.argtypes = [c_void_p]
             self._handle.debuginfod_get_url.restype = c_char_p
             result = self._handle.debuginfod_get_url(self._client)
             return result.decode('utf-8') if result else None
