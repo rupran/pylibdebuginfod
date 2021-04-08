@@ -143,6 +143,7 @@ class DebugInfoD:
     def end(self):
         '''Release all state and storage for the current connection handle.'''
         if self._client:
+            self._handle.debuginfod_end.argtypes = [c_void_p]
             self._handle.debuginfod_end(self._client)
             self._client = None
 
