@@ -346,7 +346,7 @@ class DebugInfoD:
             NotImplementedError: The backing libdebuginfod.so file does not
                 provide the debuginfod_add_http_header() function.
         '''
-        header = _convert_to_string_buffer(header)
+        header, _ = _convert_to_string_buffer(header)
         try:
             self._handle.debuginfod_add_http_header.argtypes = [c_void_p, c_char_p]
             return self._handle.debuginfod_add_http_header(self._client, header)
