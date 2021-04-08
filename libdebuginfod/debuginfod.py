@@ -225,7 +225,7 @@ class DebugInfoD:
     #                            int build_id_len,
     #                            const char *filename,
     #                            char ** path);
-    def find_source(self, buildid, filename):
+    def find_source(self, buildid, filename: str):
         '''Retrieve the source code for a given build ID and filename
 
         Args:
@@ -245,7 +245,7 @@ class DebugInfoD:
         '''
         path_p = c_char_p()
         buildid, size = _convert_to_string_buffer(buildid)
-        filename = _convert_to_string_buffer(filename)
+        filename, _ = _convert_to_string_buffer(filename)
         self._handle.debuginfod_find_source.argtypes = [c_void_p, c_char_p, c_int,
                                                         c_char_p, c_void_p]
 
