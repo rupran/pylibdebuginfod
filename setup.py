@@ -15,7 +15,7 @@ setup(
     author = 'Andreas Ziegler',
     author_email = 'andreas.ziegler@fau.de',
     url = 'https://github.com/rupran/pylibdebuginfod',
-    version = '0.1',
+    version = '0.2',
     license = 'MIT',
     packages = [
         'libdebuginfod'
