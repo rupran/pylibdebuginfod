@@ -110,6 +110,7 @@ class DebugInfoD:
             raise FileNotFoundError('libdebuginfod not found, please install it first!')
         self._handle = CDLL(searched_library, use_errno=True)
         self._handle_libc = CDLL(util.find_library('c'))
+        self._handle_libc.free.argtypes = [c_void_p]
         if not os.environ.get('DEBUGINFOD_URLS', None):
             os.environ['DEBUGINFOD_URLS'] = 'https://debuginfod.elfutils.org/'
         self._client = None
