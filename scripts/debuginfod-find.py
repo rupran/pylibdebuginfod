@@ -7,11 +7,10 @@ import argparse
 import os
 import sys
 
-from libdebuginfod import DebugInfoD, get_buildid_from_path
-from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
+from libdebuginfod import DebugInfoD, get_buildid_from_path
 
-def run(command, arg, sourcefile=None, verbose=False):
+def run(command: str, arg: str, sourcefile: str, verbose=False) -> None:
     d = DebugInfoD()
     if verbose:
         d.set_verbose_fd(sys.stderr)
@@ -59,4 +58,4 @@ if __name__ == '__main__':
     if args.command == 'source':
         sourcefile = args.input[1]
 
-    run(args.command, args.input[0], sourcefile=sourcefile, verbose=args.verbose)
+    run(args.command, args.input[0], sourcefile, verbose=args.verbose)

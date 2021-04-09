@@ -26,12 +26,14 @@ Example:
 import os
 
 from ctypes import util
-from ctypes import CDLL, c_char_p, c_void_p, c_int, c_long, CFUNCTYPE
+from ctypes import CDLL, c_char_p, c_void_p, c_int, c_long, CFUNCTYPE, Array
 from ctypes import get_errno, create_string_buffer, byref, cast
+
+from typing import Optional, TextIO, Tuple, Union
 
 from elftools.elf.elffile import ELFFile
 
-def _convert_to_string_buffer(buildid):
+def _convert_to_string_buffer(buildid: Union[bytes, str]) -> Tuple[Array, int]:
     '''Convert a given buffer (bytes or str) to a ctypes string buffer.
 
     Similar to the interface of libdebuginfod itself, all find_* functions can
@@ -57,16 +59,30 @@ def _convert_to_string_buffer(buildid):
 ProgressFunction = CFUNCTYPE(c_int, c_void_p, c_long, c_long)
 '''A callback function type which is called during file download.
 
-In order to allow a callback function to be implemented, it must be derived from
-ctypes.CFUNCTYPE. The ProgressFunction type already includes the correct
-description of parameter types and the return value. The callback function must
-take three parameters - client (which will be of type ctypes.c_void_p), a, and
-b -, where a and b are ctypes.c_long values and a/b describes the progress of
-the current file download. b may be zero until the actual download size can be
-determined.
+In order to allow a callback function to be implemented in Python, it must be
+created via the ctypes.CFUNCTYPE factory function. The ProgressFunction factory
+function already includes the correct description of parameter types and the
+return value. The callback function must take three parameters - client (which
+will be of type ctypes.c_void_p), a, and b -, where a and b are ctypes.c_long
+values and a/b describes the progress of the current file download. b may be
+zero until the actual download size is known or -1 if no total download size
+could be determined.
+
+The callback function must return 0 to continue the download, any other value
+will stop the download as soon as possible.
+
+Example:
+    def progress(client, a, b):
+        print(a, b)
+        return 0
+
+    ctypes_progress = ProgressFunction(progress)
+    with DebugInfoD() as client:
+        client.set_progressfn(ctypes_progress)
+        ...
 '''
 
-def get_buildid_from_path(path):
+def get_buildid_from_path(path: Union[bytes, str]) -> Optional[str]:
     '''Read the build ID from the binary at path.
 
     Args:
@@ -152,7 +168,7 @@ class DebugInfoD:
     #                               const unsigned char *build_id,
     #                               int build_id_len,
     #                               char ** path);
-    def find_debuginfo(self, buildid):
+    def find_debuginfo(self, buildid: Union[bytes, str]) -> Tuple[int, Optional[bytes]]:
         '''Retrieve the debug information file for a given build ID
 
         Args:
@@ -169,11 +185,11 @@ class DebugInfoD:
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/debuginfo)
         '''
         path_p = c_char_p()
-        buildid, size = _convert_to_string_buffer(buildid)
+        buildid_str, size = _convert_to_string_buffer(buildid)
         self._handle.debuginfod_find_debuginfo.argtypes = [c_void_p, c_char_p,
                                                            c_int, c_void_p]
 
-        res = self._handle.debuginfod_find_debuginfo(self._client, buildid,
+        res = self._handle.debuginfod_find_debuginfo(self._client, buildid_str,
                                                      size, byref(path_p))
         if res < 0:
             return res, None
@@ -191,7 +207,7 @@ class DebugInfoD:
     #                                const unsigned char *build_id,
     #                                int build_id_len,
     #                                char ** path);
-    def find_executable(self, buildid):
+    def find_executable(self, buildid: Union[bytes, str]) -> Tuple[int, Optional[bytes]]:
         '''Retrieve the executable file for a given build ID
 
         Args:
@@ -208,11 +224,11 @@ class DebugInfoD:
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/executable)
         '''
         path_p = c_char_p()
-        buildid, size = _convert_to_string_buffer(buildid)
+        buildid_str, size = _convert_to_string_buffer(buildid)
         self._handle.debuginfod_find_executable.argtypes = [c_void_p, c_char_p,
                                                             c_int, c_void_p]
 
-        res = self._handle.debuginfod_find_executable(self._client, buildid,
+        res = self._handle.debuginfod_find_executable(self._client, buildid_str,
                                                       size, byref(path_p))
         if res < 0:
             return res, None
@@ -225,7 +241,8 @@ class DebugInfoD:
     #                            int build_id_len,
     #                            const char *filename,
     #                            char ** path);
-    def find_source(self, buildid, filename: str):
+    def find_source(self, buildid: Union[bytes, str], filename: Union[bytes, str]) \
+            -> Tuple[int, Optional[bytes]]:
         '''Retrieve the source code for a given build ID and filename
 
         Args:
@@ -244,13 +261,14 @@ class DebugInfoD:
             Example: (3, b'$HOME/.cache/debuginfod_client/{buildid}/source/{filename})
         '''
         path_p = c_char_p()
-        buildid, size = _convert_to_string_buffer(buildid)
-        filename, _ = _convert_to_string_buffer(filename)
+        buildid_str, size = _convert_to_string_buffer(buildid)
+        filename_str, _ = _convert_to_string_buffer(filename)
         self._handle.debuginfod_find_source.argtypes = [c_void_p, c_char_p, c_int,
                                                         c_char_p, c_void_p]
 
-        res = self._handle.debuginfod_find_source(self._client, buildid, size,
-                                                  filename, byref(path_p))
+        res = self._handle.debuginfod_find_source(self._client, buildid_str,
+                                                  size, filename_str,
+                                                  byref(path_p))
         if res < 0:
             return res, None
         path = cast(path_p, c_char_p).value
@@ -259,7 +277,7 @@ class DebugInfoD:
 
     # void debuginfod_set_progressfn(debuginfod_client *client,
     #                                debuginfod_progressfn_t progressfn);
-    def set_progressfn(self, progressfn: ProgressFunction):
+    def set_progressfn(self, progressfn) -> None:
         '''Set a callback function which is called during file download
 
         Args:
@@ -278,7 +296,7 @@ class DebugInfoD:
         self._handle.debuginfod_set_progressfn(self._client, progressfn)
 
     # void debuginfod_set_verbose_fd(debuginfod_client *client, int fd);
-    def set_verbose_fd(self, fd):
+    def set_verbose_fd(self, fd: TextIO) -> None:
         '''Set the file descriptor to write verbose messages to
 
         Args:
@@ -313,7 +331,7 @@ class DebugInfoD:
         raise NotImplementedError
 
     # const char* debuginfod_get_url(debuginfod_client *client);
-    def get_url(self):
+    def get_url(self) -> Optional[str]:
         '''Get the URL of the most recent downloaded file
 
         Returns:
@@ -333,7 +351,7 @@ class DebugInfoD:
 
     # int debuginfod_add_http_header(debuginfod_client *client,
     #                                const char* header);
-    def add_http_header(self, header: str):
+    def add_http_header(self, header: str) -> int:
         '''Add a custom HTTP header to all outgoing requests
 
         Args:
@@ -346,10 +364,11 @@ class DebugInfoD:
             NotImplementedError: The backing libdebuginfod.so file does not
                 provide the debuginfod_add_http_header() function.
         '''
-        header, _ = _convert_to_string_buffer(header)
+        header_str, _ = _convert_to_string_buffer(header)
         try:
             self._handle.debuginfod_add_http_header.argtypes = [c_void_p, c_char_p]
-            return self._handle.debuginfod_add_http_header(self._client, header)
+            return self._handle.debuginfod_add_http_header(self._client,
+                                                           header_str)
         except AttributeError:
             raise NotImplementedError from None
 
