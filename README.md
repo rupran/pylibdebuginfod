@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 # pylibdebuginfod
 Python bindings for [libdebuginfod](https://sourceware.org/elfutils/Debuginfod.html).
 
-This library provides a Python interface for the functions in the `libdebuginfod.so` library from [elfutils](https://sourceware.org/elfutils/). The `debuginfod` cilent/server infrastructure allows automatic distribution of debugging information (ELF symbol tables, DWARF and even source code) for binaries installed on the current system.
+This library provides a Python interface for the functions in the `libdebuginfod.so` library from [elfutils](https://sourceware.org/elfutils/). The `debuginfod` client/server infrastructure allows automatic distribution of debugging information (ELF symbol tables, DWARF and even source code) for binaries installed on the current system.
 
 The debuginfod server is queried using a SHA-1 hash (the build ID) which is contained in a section `.note.gnu.build-id` in the stripped binary file.
 
