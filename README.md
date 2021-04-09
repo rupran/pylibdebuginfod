@@ -16,8 +16,16 @@ The minimum Python version required is 3.5.
 
 The bindings require an installation of `libdebuginfod.so` and the [pyelftools](https://github.com/eliben/pyelftools) library.
 
+`libdebuginfod.so` is shipped in the major distributions in the following packages:
+ * Debian (`buster-backports`, `bullseye`, `sid`): `libdebuginfod1`
+ * Fedora/CentOS: `elfutils-debuginfod-client`
+ * openSUSE Tumbleweed: `elfutils`
+ * Ubuntu (20.10 and later): `libdebuginfod1`
+
+Alternatively, you can get and compile the source code from the official [elfutils Git repository](https://sourceware.org/git/?p=elfutils.git;a=summary).
+
 # Usage
-This example was run under Debian Buster with the `libdebuginfod1`, `libelf1` and `libdw1` packages from `buster-backports`.
+The following examples were run under Debian Buster with the `libdebuginfod1`, `libelf1` and `libdw1` packages from `buster-backports`.
 
 In order to make `libdebuginfod.so` aware of the servers to query, you can set the `DEBUGINFOD_URLS` environment variable. For example, to query the Debian server, you can run:
 
