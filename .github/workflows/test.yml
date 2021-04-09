@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2021 Andreas Ziegler <andreas.ziegler@fau.de>
+#
+# SPDX-License-Identifier: MIT
+
+name: Test Cases
+
+on: push
+
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  run-tests:
+    # Name the Job
+    name: Run the included test cases
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
+    # Run the tests inside a Fedora container which supports debuginfod
+    container: fedora:rawhide
+
+    steps:
+      # Checks out a copy of your repository in the Debian container
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Install debuginfod and dependencies. Use a pinned version of gcc for
+      # which we know a path (important for testing the 'source' command).
+      - name: Install dnf dependencies
+        run: dnf install -y elfutils-debuginfod-client python-pip gcc-11.0.1-0.4.fc35
+
+      # Install required python packages
+      - name: Install dependencies from pip
+        run: python3 -m pip install pyelftools coverage pytest pytest-cov
+
+      # Run the test cases with pytest
+      - name: Run tests with pytest and generate a coverage report
+        run: python3 -m pytest --cov=libdebuginfod/ --cov-report term --cov-report html
+
+      # Upload HTML artifacts
+      - name: Save coverage artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: htmlcov
+          path: htmlcov

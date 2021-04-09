@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2021 Andreas Ziegler <andreas.ziegler@fau.de>
 
 SPDX-License-Identifier: MIT
 -->
-[![PyPI version](https://badge.fury.io/py/pylibdebuginfod.svg)](https://badge.fury.io/py/pylibdebuginfod)
+[![Test Cases](https://github.com/rupran/pylibdebuginfod/actions/workflows/test.yml/badge.svg)](https://github.com/rupran/pylibdebuginfod/actions/workflows/test.yml) [![PyPI version](https://badge.fury.io/py/pylibdebuginfod.svg)](https://badge.fury.io/py/pylibdebuginfod)
 
 # pylibdebuginfod
 Python bindings for [libdebuginfod](https://sourceware.org/elfutils/Debuginfod.html).
