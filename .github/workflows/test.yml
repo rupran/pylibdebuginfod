@@ -25,7 +25,7 @@ jobs:
       # Install debuginfod and dependencies. Use a pinned version of gcc for
       # which we know a path (important for testing the 'source' command).
       - name: Install dnf dependencies
-        run: dnf install -y elfutils-debuginfod-client python-pip gcc-11.0.1-0.4.fc35
+        run: dnf install -y elfutils-debuginfod-client python-pip gcc
 
       # Install required python packages
       - name: Install dependencies from pip

@@ -17,7 +17,7 @@ from libdebuginfod.debuginfod import _convert_to_string_buffer
 TEST_BINARY = '/bin/gcc'
 # Source path from a specific version of gcc in rawhide. This needs to be
 # installed in the correct version in the test.yml file
-TEST_SRCPATH = '/usr/src/debug/gcc-11.0.1-0.4.fc35.x86_64/obj-x86_64-redhat-linux/gcc/../../gcc/gcc-main.c'
+# TEST_SRCPATH = '/usr/src/debug/gcc-11.0.1-0.4.fc35.x86_64/obj-x86_64-redhat-linux/gcc/../../gcc/gcc-main.c'
 
 class TestDebugInfoD(unittest.TestCase):
 
@@ -75,19 +75,19 @@ class TestDebugInfoD(unittest.TestCase):
             self.assertLess(fdesc, 0)
             self.assertIsNone(path)
 
-    def test_3_get_source(self):
-        with DebugInfoD() as client:
-            fdesc, path = client.find_source(self.buildid, TEST_SRCPATH)
-            if fdesc > 0:
-                os.close(fdesc)
-            self.assertIsNotNone(path)
-            os.remove(path)
+#    def test_3_get_source(self):
+#        with DebugInfoD() as client:
+#            fdesc, path = client.find_source(self.buildid, TEST_SRCPATH)
+#            if fdesc > 0:
+#                os.close(fdesc)
+#            self.assertIsNotNone(path)
+#            os.remove(path)
 
-    def test_3_fail_get_source(self):
-        with DebugInfoD() as client:
-            fdesc, path = client.find_source(self.buildid + 'f', TEST_SRCPATH)
-            self.assertLess(fdesc, 0)
-            self.assertIsNone(path)
+#    def test_3_fail_get_source(self):
+#        with DebugInfoD() as client:
+#            fdesc, path = client.find_source(self.buildid + 'f', TEST_SRCPATH)
+#            self.assertLess(fdesc, 0)
+#            self.assertIsNone(path)
 
     def test_4_get_url(self):
         with DebugInfoD() as client:
