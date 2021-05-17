@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-__version__ = '0.2'
+__version__ = '0.3'
 
 from libdebuginfod.debuginfod import DebugInfoD, ProgressFunction, \
                                      get_buildid_from_path
